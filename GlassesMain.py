@@ -6,6 +6,8 @@ import keyboard
 import pyttsx3
 import threading
 import time
+import os
+import sys
 
 FORMAT = pyaudio.paInt16  # 16-bit audio
 CHANNELS = 1              # Mono audio
@@ -46,10 +48,21 @@ def stop_recording():
     global rec_stream, record_thread, rec_frames
     if not recording_event.is_set():
         return
+    # Signal worker to stop
     recording_event.clear()
+    print("Stopping recording...")
+    # Close the stream to unblock the worker's read()
+    if rec_stream is not None:
+        rec_stream.stop_stream()
+        rec_stream.close()
+
+    # Join the worker briefly; it's a daemon so don't block indefinitely
+    if record_thread is not None:
+        record_thread.join(timeout=1.0)
+
     print("Recording stopped.")
-    rec_stream.stop_stream()
-    rec_stream.close()
+
+    # Save recorded data
     waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
     waveFile.setnchannels(CHANNELS)
     waveFile.setsampwidth(audio.get_sample_size(FORMAT))
@@ -57,9 +70,12 @@ def stop_recording():
     waveFile.writeframes(b''.join(rec_frames))
     waveFile.close()
     print(f"Audio saved to {WAVE_OUTPUT_FILENAME}")
+
     processed_sound = AudioSegment.from_wav(WAVE_OUTPUT_FILENAME)
     processed_sound.export("output/processedclip.mp3", format="mp3")
-    Prompt()
+
+    # Run Prompt asynchronously so the key-release handler returns quickly
+    threading.Thread(target=Prompt, daemon=True).start()
 
 def Prompt():
     uploaded = client.files.upload(file="output/processedclip.mp3")
@@ -69,10 +85,16 @@ def Prompt():
     )
     pyttsx3.speak(response.text)
     print("audio said")
-    print("wait2.5sec")
-    time.sleep(2.5)
-def Loop():
-    keyboard.on_press_key('r', lambda e: start_recording())
-    keyboard.on_release_key('r', lambda e: stop_recording())
+def ExitAndClear():
+    os.remove("output/processedclip.mp3")
+    os.remove(WAVE_OUTPUT_FILENAME)
+    sys.exit
+    
+# Register keyboard handlers once
+keyboard.on_press_key('r', lambda e: start_recording())
+keyboard.on_release_key('r', lambda e: stop_recording())
+keyboard.on_press_key('esc', lambda e: ExitAndClear())
+
+print("Ready: hold 'r' to record, release to send to Prompt().")
 while True:
-    Loop()
+    time.sleep(1)

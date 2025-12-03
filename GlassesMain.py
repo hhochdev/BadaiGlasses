@@ -7,7 +7,6 @@ import pyttsx3
 import threading
 import time
 import os
-import sys
 
 FORMAT = pyaudio.paInt16  # 16-bit audio
 CHANNELS = 1              # Mono audio
@@ -88,7 +87,8 @@ def Prompt():
 def ExitAndClear():
     os.remove("output/processedclip.mp3")
     os.remove(WAVE_OUTPUT_FILENAME)
-    sys.exit
+    print("Exiting with error code 0")
+    os._exit(0)
     
 # Register keyboard handlers once
 keyboard.on_press_key('r', lambda e: start_recording())

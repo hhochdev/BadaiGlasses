@@ -12,7 +12,7 @@ FORMAT = pyaudio.paInt16  # 16-bit audio
 CHANNELS = 1              # Mono audio
 RATE = 44100              # Sample rate (samples per second)
 CHUNK = 1024              # Frames per buffer
-WAVE_OUTPUT_FILENAME = "recorded_audio.wav"
+WAVE_OUTPUT_FILENAME = "output/recorded_audio.wav"
 audio = pyaudio.PyAudio()
 client = genai.Client()
 

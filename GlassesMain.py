@@ -19,8 +19,10 @@ client = genai.Client()
 # Recording state
 recording_event = threading.Event()
 globalrecord_thread = None
-global rec_stream = None
-global rec_frames = []
+global rec_stream
+global rec_frames
+rec_frames = []
+rec frames = []
 
 def _record_worker():
     while recording_event.is_set():

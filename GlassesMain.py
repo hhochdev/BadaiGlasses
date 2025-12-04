@@ -22,7 +22,7 @@ globalrecord_thread = None
 global rec_stream
 global rec_frames
 rec_frames = []
-rec frames = []
+rec_stream = None
 
 def _record_worker():
     while recording_event.is_set():

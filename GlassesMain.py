@@ -7,7 +7,6 @@ import pyttsx3
 import threading
 import time
 import os
-
 FORMAT = pyaudio.paInt16  # 16-bit audio
 CHANNELS = 1              # Mono audio
 RATE = 44100              # Sample rate (samples per second)
@@ -18,18 +17,18 @@ client = genai.Client()
 
 # Recording state
 recording_event = threading.Event()
-global record_thread
-global rec_stream
-global rec_frames
 rec_frames = []
 rec_stream = None
 record_thread = None
 def _record_worker():
+    global rec_stream
+    global rec_frames
     while recording_event.is_set():
         data = rec_stream.read(CHUNK, exception_on_overflow=False)
         rec_frames.append(data)
 
 def start_recording():
+    global rec_frames, rec_stream
     if recording_event.is_set():
         return
     rec_frames = []
@@ -76,10 +75,11 @@ def stop_recording():
     threading.Thread(target=Prompt, daemon=True).start()
 
 def Prompt():
-    uploaded = client.files.upload(file="output/processedclip.mp3")
+    sound = client.files.upload(file="output/processedclip.mp3")
+
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=[uploaded],
+        model="gemini-2.5-flash",
+        contents=[sound],
     )
     pyttsx3.speak(response.text)
     print("audio said")

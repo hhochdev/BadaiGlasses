@@ -1,4 +1,5 @@
-import RPi.GPIO as GPIO
+from EmulatorGUI import GPIO
+import keyboard
 from google import genai
 import pyaudio
 import wave
@@ -18,9 +19,6 @@ client = genai.Client()
 
 # Recording state
 recording_event = threading.Event()
-global record_thread
-global rec_stream
-global rec_frames
 rec_frames = []
 rec_stream = None
 record_thread = None
@@ -30,6 +28,7 @@ def _record_worker():
         rec_frames.append(data)
 
 def start_recording():
+    global rec_frames, rec_stream
     if recording_event.is_set():
         return
     rec_frames = []
@@ -42,7 +41,6 @@ def start_recording():
     record_thread = threading.Thread(target=_record_worker, daemon=True)
     record_thread.start()
     print("Recording started...")
-
 def stop_recording():
     if not recording_event.is_set():
         return
